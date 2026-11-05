@@ -1,0 +1,41 @@
+// MODEL DE USUARIOS: registro y login con Supabase Auth
+const { createClient } = require('@supabase/supabase-js');
+const supabase = require('../config/supabaseClient');
+const { faltaImplementar } = require('../utils/errores');
+
+// Los productos activos, con el nombre de su categoria.
+async function obtenerProductos(categoriaId) {
+  // TODO (Clase 2 · Paso 1): completar con el código de la práctica.
+  throw faltaImplementar('obtenerProductos', 'Clase 2 · Paso 1');
+}
+
+// Registro: Auth crea el usuario y nosotros guardamos su perfil
+async function registrar(email, password, nombre) {
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true
+  });
+  if (error) throw error;
+
+  const {error: e2} = await supabase.from('perfiles')
+   .insert({ id: data.user.id, nombre });
+  if (e2) throw e2;
+  return data.user;
+}
+
+
+async function iniciarSesion(email, password) {
+  // un cliente descartable: la sesión queda acá y no en el cliente principal
+  const temporal = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_KEY,
+    { auth: { persistSession: false } }
+  );
+  const { data, error } =
+    await temporal.auth.signInWithPassword({ email, password });
+  if (error) return null;
+  return data.session.access_token;
+}
+
+module.exports = { registrar, iniciarSesion };
